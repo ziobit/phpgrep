@@ -22,8 +22,15 @@ function searchInDirectory($dir, $searchString, &$results) {
       searchInDirectory($filePath, $searchString, $results);
     } elseif (pathinfo($filePath, PATHINFO_EXTENSION) === 'php') {
       $contents = file_get_contents($filePath);
-      if (stripos($contents, $searchString) !== false) {
-        $results[] = $filePath;
+      $lines = explode("\n", $contents);
+      foreach ($lines as $lineNumber => $line) {
+        if (stripos($line, $searchString) !== false) {
+          $results[] = [
+            'file' => $filePath,
+            'line' => $lineNumber + 1,
+            'content' => $line
+          ];
+        }
       }
     }
   }
@@ -39,7 +46,7 @@ if (!empty($results)) {
   echo 'Found "' . htmlspecialchars($searchString) . '" in the following files:<br>';
   echo '<ul>';
   foreach ($results as $result) {
-    echo '<li>' . htmlspecialchars($result) . '</li>';
+    echo '<li>' . htmlspecialchars($result['file']) . ' (Line ' . $result['line'] . '): ' . htmlspecialchars($result['content']) . '</li>';
   }
   echo '</ul>';
 } else {
