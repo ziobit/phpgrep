@@ -234,6 +234,47 @@ $resultCount = count($resultsList);
       gap: 6px;
     }
 
+    details {
+      border-radius: 12px;
+      background: #f9fafb;
+      border: 1px solid var(--border);
+      overflow: hidden;
+    }
+
+    summary {
+      list-style: none;
+      cursor: pointer;
+      display: block;
+    }
+
+    summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .accordion-header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 16px;
+    }
+
+    .accordion-header::after {
+      content: "▾";
+      font-size: 0.9rem;
+      color: var(--muted);
+      transition: transform 0.2s ease;
+    }
+
+    details[open] .accordion-header::after {
+      transform: rotate(-180deg);
+    }
+
+    .accordion-body {
+      padding: 0 16px 16px;
+    }
+
     .matches li {
       background: transparent;
       border: none;
@@ -306,18 +347,24 @@ $resultCount = count($resultsList);
             <ul>
               <?php foreach ($resultsList as $result): ?>
                 <li>
-                  <div class="file-row">
-                    <div class="file"><?php echo htmlspecialchars($result['file']); ?></div>
-                    <span class="badge"><?php echo $result['count']; ?> match<?php echo $result['count'] === 1 ? '' : 'es'; ?></span>
-                  </div>
-                  <ul class="matches">
-                    <?php foreach ($result['matches'] as $match): ?>
-                      <li>
-                        <div class="file">Line <?php echo $match['line']; ?></div>
-                        <div class="line"><?php echo htmlspecialchars($match['content']); ?></div>
-                      </li>
-                    <?php endforeach; ?>
-                  </ul>
+                  <details>
+                    <summary>
+                      <div class="accordion-header">
+                        <div class="file"><?php echo htmlspecialchars($result['file']); ?></div>
+                        <span class="badge"><?php echo $result['count']; ?> match<?php echo $result['count'] === 1 ? '' : 'es'; ?></span>
+                      </div>
+                    </summary>
+                    <div class="accordion-body">
+                      <ul class="matches">
+                        <?php foreach ($result['matches'] as $match): ?>
+                          <li>
+                            <div class="file">Line <?php echo $match['line']; ?></div>
+                            <div class="line"><?php echo htmlspecialchars($match['content']); ?></div>
+                          </li>
+                        <?php endforeach; ?>
+                      </ul>
+                    </div>
+                  </details>
                 </li>
               <?php endforeach; ?>
             </ul>
