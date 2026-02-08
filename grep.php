@@ -1,8 +1,23 @@
 <?php
 $searchString = isset($_GET['s']) ? trim($_GET['s']) : '';
+$extensionsInput = isset($_GET['ext']) ? $_GET['ext'] : 'php,js';
+$extensions = [];
+foreach (explode(',', strtolower($extensionsInput)) as $extension) {
+  $extension = trim($extension);
+  if ($extension === '') {
+    continue;
+  }
+  if (preg_match('/^[a-z0-9]+$/', $extension)) {
+    $extensions[] = $extension;
+  }
+}
+if (empty($extensions)) {
+  $extensions = ['php', 'js'];
+}
+$extensions = array_values(array_unique($extensions));
 
 // Function to recursively search PHP files
-function searchInDirectory($dir, $searchString, &$results) {
+function searchInDirectory($dir, $searchString, $extensions, &$results) {
   $files = scandir($dir);
 
   foreach ($files as $file) {
@@ -13,8 +28,12 @@ function searchInDirectory($dir, $searchString, &$results) {
     $filePath = $dir . DIRECTORY_SEPARATOR . $file;
 
     if (is_dir($filePath)) {
-      searchInDirectory($filePath, $searchString, $results);
-    } elseif (pathinfo($filePath, PATHINFO_EXTENSION) === 'php') {
+      searchInDirectory($filePath, $searchString, $extensions, $results);
+    } else {
+      $fileExtension = strtolower(pathinfo($filePath, PATHINFO_EXTENSION));
+      if (!in_array($fileExtension, $extensions, true)) {
+        continue;
+      }
       $contents = file_get_contents($filePath);
       $lines = explode("\n", $contents);
       foreach ($lines as $lineNumber => $line) {
@@ -40,7 +59,7 @@ function searchInDirectory($dir, $searchString, &$results) {
 $results = [];
 
 if ($searchString !== '') {
-  searchInDirectory('.', $searchString, $results);
+  searchInDirectory('.', $searchString, $extensions, $results);
 }
 
 $resultsList = array_values($results);
@@ -322,7 +341,9 @@ $resultCount = count($resultsList);
               <input id="search" type="text" name="s" placeholder="Try \"function\", \"class\", or a variable name" value="<?php echo htmlspecialchars($searchString); ?>">
               <button type="submit">Search</button>
             </div>
-            <p class="hint">Search is case-insensitive and scans all PHP files under the current directory.</p>
+            <label for="extensions">File extensions</label>
+            <input id="extensions" type="text" name="ext" placeholder="php,js,ts" value="<?php echo htmlspecialchars(implode(',', $extensions)); ?>">
+            <p class="hint">Search is case-insensitive and scans the selected extensions under the current directory.</p>
           </form>
         </section>
 
@@ -377,4 +398,3 @@ $resultCount = count($resultsList);
     </footer>
   </div>
 </body>
-</html>
